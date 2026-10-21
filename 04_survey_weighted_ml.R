@@ -18,7 +18,7 @@ run_advanced_survey_pipeline <- function() {
       event_status  = ifelse(ell > 20, 1, 0)
     )
   
-  # Specify Complex Survey Design
+  # Complex Survey Design
   survey_design <- svydesign(
     ids = ~psu,
     strata = ~strata,
@@ -27,16 +27,15 @@ run_advanced_survey_pipeline <- function() {
     data = df
   )
   
-  message("=== 1. Quantifying Design Effects (Deff) ===")
-  # Compute weighted mean and extract Design Effect (Deff)
+ 
+  # weighted mean and Design Effect (Deff)
   mean_estimates <- svymean(~api00, design = survey_design, deff = TRUE)
   deff_val <- deff(mean_estimates)
   print(mean_estimates)
   cat(sprintf("Design Effect (Deff): %.3f (Variance is %.1fx SRS variance)\n\n", 
               deff_val, deff_val))
   
-  message("=== 2. Survey-Weighted Random Forest (ranger) ===")
-  # Pass design sampling weights into Random Forest split criterion
+  # Passing design sampling weights into Random Forest split criterion
   rf_weighted <- ranger(
     formula = high_performer ~ meals + ell + emer + avg.ed,
     data = df,
@@ -51,8 +50,8 @@ run_advanced_survey_pipeline <- function() {
   print(sort(rf_weighted$variable.importance, decreasing = TRUE))
   cat("\n")
   
-  message("=== 3. Survey-Weighted Cox Proportional Hazards (svycoxph) ===")
-  # Fit complex survey-adjusted Cox model
+  
+  # complex survey-adjusted Cox model
   cox_fit <- svycoxph(
     Surv(time_to_event, event_status) ~ meals + emer + strata,
     design = survey_design
