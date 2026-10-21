@@ -3,7 +3,6 @@ library(survey)
 setup_survey_design <- function(data_path = "preprocessed_survey_data.rds") {
   df <- readRDS(data_path)
   
-  # Set up complex survey design
   survey_design <- svydesign(
     ids = ~psu,
     strata = ~strata,
